@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NPMPackageDependencies.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NPMPackageDependencies.Controllers
@@ -23,8 +21,23 @@ namespace NPMPackageDependencies.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsync(string packageName)
         {
-            var packages = await _packageService.GetAllPackageDependenciesByName(packageName);
-            return Ok(packages);
+            if (!string.IsNullOrWhiteSpace(packageName))
+            {
+                try
+                {
+                    var packages = await _packageService.GetAllPackageDependenciesByName(packageName);
+                    return Ok(packages);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        ex.Message);
+                }
+            }
+            else
+            {
+                return BadRequest("packageName is required.");
+            }
         }
     }
 }
