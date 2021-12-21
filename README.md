@@ -5,3 +5,4 @@
 3. build the application
 4. after application gets build succesfully run the application
 5. You will see the JSON result back.
+6. You can also test the REST API using Postman or any other such tool. 
