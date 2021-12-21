@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NPMPackageDependencies.Services
@@ -21,16 +22,16 @@ namespace NPMPackageDependencies.Services
             allPackages = new List<string>();
         }
 
-        public Task<string[]> GetAllPackageDependenciesByName(string packageName)
+        public async Task<string[]> GetAllPackageDependenciesByName(string packageName)
         {
-            GetNPMPackageList(packageName);
-            return Task.FromResult(allPackages.Distinct().OrderBy(o => o).ToArray());
+            await GetNPMPackageList(packageName);
+            return allPackages.Distinct().OrderBy(o => o).ToArray();
         }
 
-        private void GetNPMPackageList(string packageName)
+        private async Task GetNPMPackageList(string packageName)
         {
             var url = string.Format($"/{packageName}/latest");
-            var response = client.GetAsync(url).Result;
+            var response = await client.GetAsync(url);
             var stringResponse = response.Content.ReadAsStringAsync().Result;
 
             var packageData = JsonConvert.DeserializeObject<PackageData>(stringResponse);
@@ -38,12 +39,12 @@ namespace NPMPackageDependencies.Services
             if (packageData.dependencies != null && packageData.dependencies.ToString() != "{}")
             {
                 var dependencies = JsonConvert.DeserializeObject<Dictionary<string, string>>(packageData.dependencies.ToString());
-                Parallel.ForEach(dependencies.Keys.ToList(), dependency => GetNPMPackageList(dependency.ToString()));
+                Parallel.ForEach(dependencies.Keys.ToList(), async dependency => await GetNPMPackageList(dependency.ToString()));
             }
             else
             {
                 allPackages.Add(packageName);
             }
-        }
+        }       
     }
 }
