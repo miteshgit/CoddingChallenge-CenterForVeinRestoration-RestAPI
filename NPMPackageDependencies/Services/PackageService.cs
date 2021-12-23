@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using NPMPackageDependencies.Model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -12,14 +13,14 @@ namespace NPMPackageDependencies.Services
     public class PackageService : IPackageService
     {
         private readonly HttpClient client;
-        private List<string> allPackages;
+        private ConcurrentQueue<string> allPackages;
         public PackageService()
         {
             client = new HttpClient()
             {
                 BaseAddress = new Uri("http://registry.npmjs.org")
             };
-            allPackages = new List<string>();
+            allPackages = new ConcurrentQueue<string>();
         }
 
         public async Task<string[]> GetAllPackageDependenciesByName(string packageName)
@@ -43,7 +44,7 @@ namespace NPMPackageDependencies.Services
             }
             else
             {
-                allPackages.Add(packageName);
+                allPackages.Enqueue(packageName);
             }
         }       
     }
